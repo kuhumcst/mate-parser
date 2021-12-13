@@ -73,7 +73,8 @@
     <target name="is-prod" if="prod">
         <copy overwrite="true" file="properties_prod.xml" tofile="${conf.dir}/properties.xml"/>
         <copy overwrite="true" file="ivy_tomcat.xml" tofile="ivy.xml"/>
-	<!--<copy overwrite="true" file="${env.CATALINA_HOME}/${lib.dir}/servlet-api.jar" tofile="${ivy.jar.dir}/servlet-api.jar"/>-->
+        <copy overwrite="true" file="anna-3.6.jar" tofile="${lib.dir}/anna-3.6.jar"/>
+      <!--<copy overwrite="true" file="${env.CATALINA_HOME}/${lib.dir}/servlet-api.jar" tofile="${ivy.jar.dir}/servlet-api.jar"/>-->
         <delete file="${ivy.jar.dir}/slf4j-log4j12-1.5.8.jar"/>
         <delete file="${ivy.jar.dir}/slf4j-api-1.5.8.jar"/>
     </target>
