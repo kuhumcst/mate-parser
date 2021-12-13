@@ -13,7 +13,6 @@
     <property name="ivy.jar.dir" value="${basedir}/lib" />
     <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar" />
     <property name="central.repo" value="https://repo1.maven.org/maven2" />
-    <property name="jboss.repo" value="https://repository.jboss.org/maven2" />
 
 
     <!-- Define folder names -->
