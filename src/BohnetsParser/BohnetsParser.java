@@ -93,7 +93,7 @@ public class BohnetsParser extends HttpServlet
         String modelPathHead = readProperty("modelPathHead");
         String modelPathTail = readProperty("modelPathTail");
         String[] models = readProperty("models").split(",");
-        logger.debug("language: "+language);
+        //logger.debug("language: "+language);
 
         for(int i = 0 ;i < models.length ; i++)
             {
@@ -103,7 +103,7 @@ public class BohnetsParser extends HttpServlet
                 return readProperty("modelPathHead")+lang+readProperty("modelPathTail")+readProperty(lang);
                 }
             }
-        logger.debug("language not found");
+        //logger.debug("language not found");
         return "";
         }
 
@@ -113,7 +113,7 @@ public class BohnetsParser extends HttpServlet
         if(l == 0)
             return;
 
-        logger.debug("parse, l == {}",l);
+        //logger.debug("parse, l == {}",l);
                                             //    0:ID 1:FORM 2:LEMMA 3:PLEMMA 4:POS 5:PPOS 6:FEAT 7:PFEAT 8:HEAD 9:PHEAD 10:DEPREL
                                             //   11:PDEPREL 12:FILLPRED 13:PRED 14:APREDs
         String[] forms = new String[l];     // 1
@@ -218,7 +218,7 @@ public class BohnetsParser extends HttpServlet
             }
         
         Parser aParser = new Parser();
-        logger.debug("ModelFileName: "+ModelFileName);
+        //logger.debug("ModelFileName: "+ModelFileName);
         aParser.options = new Options(new String[]{"-model", ModelFileName});
         aParser.pipe = new Pipe(aParser.options);
         aParser.params = new ParametersFloat(0);  // total should be zero and the parameters are later read 
@@ -232,9 +232,9 @@ public class BohnetsParser extends HttpServlet
         SentenceData09 rawSentence = new SentenceData09(forms,lemmas,gpos,ppos,labels,heads);
 
         boolean labelOnly = false;
-        logger.debug("raw: "+rawSentence.toString());
+        //logger.debug("raw: "+rawSentence.toString());
         SentenceData09 parsedSentence = aParser.parse(rawSentence,aParser.params,labelOnly,aParser.options);
-        logger.debug("syn: "+parsedSentence.toString());
+        //logger.debug("syn: "+parsedSentence.toString());
 
         out.println(parsedSentence.toString());
         }
@@ -255,7 +255,7 @@ separated by an empty line.
     public void parse(String arg,PrintWriter out,String ModelFileName)
     throws IOException    
         {
-        logger.debug("parse({},{})",arg,ModelFileName);
+        //logger.debug("parse({},{})",arg,ModelFileName);
         try {
             BufferedReader dis = new BufferedReader(new InputStreamReader(new FileInputStream(arg),"UTF8"));
             String str;
@@ -272,7 +272,7 @@ separated by an empty line.
                 else
                     {
                     lines.add(str);
-                    logger.debug("str: "+str);
+                    //logger.debug("str: "+str);
                     }
                 }
             java.nio.file.Files.deleteIfExists(java.nio.file.Paths.get(arg));
@@ -299,24 +299,24 @@ separated by an empty line.
  
      public static String getParmFromMultipartFormData(HttpServletRequest request,List<?> items,String parm)
         {
-        logger.debug("parm:["+parm+"]");
+        //logger.debug("parm:["+parm+"]");
         String ret = "";
         try 
             {
-            logger.debug("items:"+items);
+            //logger.debug("items:"+items);
             Iterator<?> itr = items.iterator();
-            logger.debug("itr:"+itr);
+            //logger.debug("itr:"+itr);
             while(itr.hasNext()) 
                 {
-                logger.debug("in loop");
+                //logger.debug("in loop");
                 FileItem item = (FileItem)itr.next();
                 if(item.isFormField()) 
                     {
-                    logger.debug("Field Name = "+item.getFieldName()+", String = "+item.getString());
+                    //logger.debug("Field Name = "+item.getFieldName()+", String = "+item.getString());
                     if(item.getFieldName().equals(parm))
                         {
                         ret = item.getString();
-                        logger.debug("Found " + parm + " = " + ret);
+                        //logger.debug("Found " + parm + " = " + ret);
                         break; // currently not interested in other fields than parm
                         }
                     }
@@ -326,7 +326,7 @@ separated by an empty line.
             {
             logger.error("uploadHandler.parseRequest Exception");
             }
-        logger.debug("value["+parm+"]="+ret);
+        //logger.debug("value["+parm+"]="+ret);
         return ret;
         }                        
  
@@ -340,13 +340,13 @@ separated by an empty line.
         response.setCharacterEncoding("UTF-8");
         response.setStatus(200);
         PrintWriter out = response.getWriter();
-        logger.debug("doPost, RemoteAddr == {} language == {}",request.getRemoteAddr(),language);
+        //logger.debug("doPost, RemoteAddr == {} language == {}",request.getRemoteAddr(),language);
 
         java.lang.String arg  = getParmsAndFiles(items,response,out);
-        logger.debug("parse {}",arg);
+        //logger.debug("parse {}",arg);
 
         String ModelFileName = modelFileName(language);
-        logger.debug("ModelFileName {}",ModelFileName);
+        //logger.debug("ModelFileName {}",ModelFileName);
         parse(arg,out,ModelFileName);      
         }
 
@@ -358,11 +358,11 @@ separated by an empty line.
         for (Enumeration<?> e = parmNames ; e.hasMoreElements() ;) 
             {
             String parmName = (String)e.nextElement();
-            logger.debug("parmName: " + parmName);            
+            //logger.debug("parmName: " + parmName);            
             String vals[] = request.getParameterValues(parmName);
             for(int j = 0;j < vals.length;++j)
                 {
-                logger.debug("value: " + vals[j]);            
+                //logger.debug("value: " + vals[j]);            
                 }
             }
         
@@ -402,18 +402,18 @@ separated by an empty line.
             Iterator<?> itr = items.iterator();
             while(itr.hasNext()) 
                 {
-                logger.debug("in loop");
+                //logger.debug("in loop");
                 FileItem item = (FileItem) itr.next();
                 // Handle Form Fields.
                 if(item.isFormField()) 
                     {
-                    logger.debug("form field:"+item.getName());                    
+                    //logger.debug("form field:"+item.getName());                    
                     }
                 else if(item.getName() != "")
                     {
                     //Handle Uploaded files.
                     String LocalFileName = item.getName();
-                    logger.debug("LocalFileName:"+LocalFileName);
+                    //logger.debug("LocalFileName:"+LocalFileName);
                     // Write file to the ultimate location.
 
                     File tmpDir = new File(TMP_DIR_PATH);
@@ -424,7 +424,7 @@ separated by an empty line.
 
                     File file = File.createTempFile(LocalFileName,null,tmpDir);
                     String filename = file.getAbsolutePath();
-                    logger.debug("LocalFileName:"+filename);
+                    //logger.debug("LocalFileName:"+filename);
                     item.write(file);
                     arg = filename;
                     }
