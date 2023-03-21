@@ -1,6 +1,10 @@
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 
 import java.nio.charset.StandardCharsets;
 
@@ -12,96 +16,34 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.Properties;
-import java.util.ArrayList;
-//import java.util.Enumeration;
-import java.util.Properties;
-
-import is2.data.Cluster;
-import is2.data.DataF;
-import is2.data.DataFES;
-import is2.data.F2SF;
-import is2.data.FV;
-import is2.data.Instances;
-import is2.data.Long2Int;
-import is2.data.Long2IntInterface;
-import is2.data.Parse;
-import is2.data.PipeGen;
-import is2.data.SentenceData09;
-import is2.io.CONLLReader09;
-import is2.io.CONLLWriter09;
-import is2.tools.Retrainable;
-import is2.tools.Tool;
-import is2.util.DB;
-import is2.util.OptionsSuper;
-import is2.util.ParserEvaluator;
-
-import is2.tag.Tagger;
-
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-/*
-import java.io.*;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Cookie;
 import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
-import is2.data.Cluster;
-import is2.data.DataF;
-import is2.data.DataFES;
-import is2.data.F2SF;
-import is2.data.FV;
-import is2.data.Instances;
-import is2.data.Long2Int;
-import is2.data.Long2IntInterface;
-import is2.data.Parse;
-import is2.data.PipeGen;
 import is2.data.SentenceData09;
-import is2.io.CONLLReader09;
-import is2.io.CONLLWriter09;
-import is2.tools.Retrainable;
-import is2.tools.Tool;
-import is2.util.DB;
-import is2.util.OptionsSuper;
-import is2.util.ParserEvaluator;
-*/
-import is2.parser.*;
-/*
-import org.apache.commons.fileupload.Part;
+import is2.parser.Options;
+import is2.parser.ParametersFloat;
+import is2.parser.Parser;
+import is2.parser.Pipe;
+
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.io.IOUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-*/
+
 /*This file is 𝕌𝕋𝔽-𝟠 encoded*/
 
 @SuppressWarnings("serial")
+@MultipartConfig(fileSizeThreshold=1024*1024*10,  // 10 MB 
+                 maxFileSize=-1/*1024*1024*50*/,       // 50 MB
+                 maxRequestSize=-1/*1024*1024*100*/)    // 100 MB
+
 public class BohnetsParser extends HttpServlet 
     {    
     // Static logger object.  
@@ -383,6 +325,7 @@ separated by an empty line.
         return ret;
         }
  
+    @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException 
         {
@@ -419,46 +362,6 @@ separated by an empty line.
             {
             logger.error("Error encountered while parsing the request: "+ex.getMessage());
             }
-/*
-        Collection<Part> items = null;
-        
-        Enumeration<?> parmNames = request.getParameterNames();
-        for (Enumeration<?> e = parmNames ; e.hasMoreElements() ;) 
-            {
-            String parmName = (String)e.nextElement();
-            //logger.debug("parmName: " + parmName);            
-            String vals[] = request.getParameterValues(parmName);
-            for(int j = 0;j < vals.length;++j)
-                {
-                //logger.debug("value: " + vals[j]);            
-                }
-            }
-        
-        boolean is_multipart_formData = ServletFileUpload.isMultipartContent(request);
-
-        if(is_multipart_formData)
-            {
-            DiskFileItemFactory  fileItemFactory = new DiskFileItemFactory ();
-            // Set the size threshold, above which content will be stored on disk.
-            fileItemFactory.setSizeThreshold(1*1024*1024); //1 MB
-            // Set the temporary directory to store the uploaded files of size above threshold.
-            File tmpDir = new File(TMP_DIR_PATH);
-            if(!tmpDir.isDirectory()) 
-                {
-                throw new ServletException("Trying to set \"" + TMP_DIR_PATH + "\" as temporary directory, but this is not a valid directory.");
-                }
-            fileItemFactory.setRepository(tmpDir);
-            
-            ServletFileUpload uploadHandler = new ServletFileUpload(fileItemFactory);
-            try {
-                items = (Collection<Part>)uploadHandler.parseRequest(request);
-                }
-            catch(FileUploadException ex) 
-                {
-                logger.error("Error encountered while parsing the request: "+ex.getMessage());
-                }
-            }
-*/
         return items;
         }
 
