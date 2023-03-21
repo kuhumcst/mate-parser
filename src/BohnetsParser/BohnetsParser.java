@@ -1,6 +1,62 @@
 import java.io.*;
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import java.nio.charset.StandardCharsets;
+
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
+
+import java.util.Iterator;
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Properties;
+import java.util.ArrayList;
+//import java.util.Enumeration;
+import java.util.Properties;
+
+import is2.data.Cluster;
+import is2.data.DataF;
+import is2.data.DataFES;
+import is2.data.F2SF;
+import is2.data.FV;
+import is2.data.Instances;
+import is2.data.Long2Int;
+import is2.data.Long2IntInterface;
+import is2.data.Parse;
+import is2.data.PipeGen;
+import is2.data.SentenceData09;
+import is2.io.CONLLReader09;
+import is2.io.CONLLWriter09;
+import is2.tools.Retrainable;
+import is2.tools.Tool;
+import is2.util.DB;
+import is2.util.OptionsSuper;
+import is2.util.ParserEvaluator;
+
+import is2.tag.Tagger;
+
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+/*
+import java.io.*;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -32,18 +88,18 @@ import is2.tools.Tool;
 import is2.util.DB;
 import is2.util.OptionsSuper;
 import is2.util.ParserEvaluator;
-
+*/
 import is2.parser.*;
-
-import org.apache.commons.fileupload.FileItem;
+/*
+import org.apache.commons.fileupload.Part;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.httpclient.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-/*বাংলা this file is UTF-8 encoded*/
+*/
+/*This file is 𝕌𝕋𝔽-𝟠 encoded*/
 
 @SuppressWarnings("serial")
 public class BohnetsParser extends HttpServlet 
@@ -297,28 +353,25 @@ separated by an empty line.
         out.println("GET not supported");
         }
  
-     public static String getParmFromMultipartFormData(HttpServletRequest request,List<?> items,String parm)
+     public static String getParmFromMultipartFormData(HttpServletRequest request,Collection<Part> items,String parm)
         {
-        //logger.debug("parm:["+parm+"]");
+        logger.debug("getParmFromMultipartFormData:["+parm+"]");
         String ret = "";
         try 
             {
-            //logger.debug("items:"+items);
-            Iterator<?> itr = items.iterator();
-            //logger.debug("itr:"+itr);
+            logger.debug("items:"+items);
+            Iterator<Part> itr = items.iterator();
+            logger.debug("itr:"+itr);
             while(itr.hasNext()) 
                 {
-                //logger.debug("in loop");
-                FileItem item = (FileItem)itr.next();
-                if(item.isFormField()) 
+                logger.debug("in loop");
+                Part item = itr.next();
+                logger.debug("Field Name = "+item.getName()+", String = "+IOUtils.toString(item.getInputStream(),StandardCharsets.UTF_8));
+                if(item.getName().equals(parm))
                     {
-                    //logger.debug("Field Name = "+item.getFieldName()+", String = "+item.getString());
-                    if(item.getFieldName().equals(parm))
-                        {
-                        ret = item.getString();
-                        //logger.debug("Found " + parm + " = " + ret);
-                        break; // currently not interested in other fields than parm
-                        }
+                    ret = IOUtils.toString(item.getInputStream(),StandardCharsets.UTF_8);
+                    logger.debug("Found " + parm + " = " + ret);
+                    break; // currently not interested in other fields than parm
                     }
                 }
             }
@@ -326,14 +379,14 @@ separated by an empty line.
             {
             logger.error("uploadHandler.parseRequest Exception");
             }
-        //logger.debug("value["+parm+"]="+ret);
+        logger.debug("value["+parm+"]="+ret);
         return ret;
-        }                        
+        }
  
     public void doPost(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException 
         {
-        List<?> items = getParmList(request);
+        Collection<Part> items = getParmList(request);
         String language = getParmFromMultipartFormData(request,items,"model");
         request.setCharacterEncoding( "UTF-8" );
         response.setContentType("text/plain; charset=UTF-8");
@@ -350,9 +403,24 @@ separated by an empty line.
         parse(arg,out,ModelFileName);      
         }
 
-    public static List<?> getParmList(HttpServletRequest request) throws ServletException
+    public static Collection<Part> getParmList(HttpServletRequest request) throws ServletException
         {
-        List<?> items = null;
+        Collection<Part> items = null;
+        
+        try 
+            {
+            items = request.getParts(); // throws ServletException if this request is not of type multipart/form-data
+            }
+        catch(IOException ex) 
+            {
+            logger.error("Error encountered while parsing the request: "+ex.getMessage());
+            }
+        catch(ServletException ex) 
+            {
+            logger.error("Error encountered while parsing the request: "+ex.getMessage());
+            }
+/*
+        Collection<Part> items = null;
         
         Enumeration<?> parmNames = request.getParameterNames();
         for (Enumeration<?> e = parmNames ; e.hasMoreElements() ;) 
@@ -383,37 +451,36 @@ separated by an empty line.
             
             ServletFileUpload uploadHandler = new ServletFileUpload(fileItemFactory);
             try {
-                items = (List<?>)uploadHandler.parseRequest(request);
+                items = (Collection<Part>)uploadHandler.parseRequest(request);
                 }
             catch(FileUploadException ex) 
                 {
                 logger.error("Error encountered while parsing the request: "+ex.getMessage());
                 }
             }
+*/
         return items;
         }
 
-    public java.lang.String getParmsAndFiles(List<?> items,HttpServletResponse response,PrintWriter out) throws ServletException
-        {        
+    public java.lang.String getParmsAndFiles(Collection<Part> items,HttpServletResponse response,PrintWriter out) throws ServletException
+        {       
+        logger.debug("getParmsAndFiles");
+
         java.lang.String arg = "";
 
         try {
             // Parse the request
-            Iterator<?> itr = items.iterator();
+            Iterator<Part> itr = items.iterator();
             while(itr.hasNext()) 
                 {
-                //logger.debug("in loop");
-                FileItem item = (FileItem) itr.next();
+                logger.debug("in loop");
+                Part item = itr.next();
                 // Handle Form Fields.
-                if(item.isFormField()) 
-                    {
-                    //logger.debug("form field:"+item.getName());                    
-                    }
-                else if(item.getName() != "")
+                if(item.getSubmittedFileName() != null)
                     {
                     //Handle Uploaded files.
-                    String LocalFileName = item.getName();
-                    //logger.debug("LocalFileName:"+LocalFileName);
+                    String LocalFileName = item.getSubmittedFileName();
+                    logger.debug("LocalFileName:"+LocalFileName);
                     // Write file to the ultimate location.
 
                     File tmpDir = new File(TMP_DIR_PATH);
@@ -424,8 +491,8 @@ separated by an empty line.
 
                     File file = File.createTempFile(LocalFileName,null,tmpDir);
                     String filename = file.getAbsolutePath();
-                    //logger.debug("LocalFileName:"+filename);
-                    item.write(file);
+                    logger.debug("LocalFileName:"+filename);
+                    item.write(filename);
                     arg = filename;
                     }
                 }
