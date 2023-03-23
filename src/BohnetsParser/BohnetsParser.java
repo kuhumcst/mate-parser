@@ -230,11 +230,14 @@ public class BohnetsParser extends HttpServlet
         SentenceData09 rawSentence = new SentenceData09(forms,lemmas,gpos,ppos,labels,heads);
 
         boolean labelOnly = false;
-        //logger.debug("raw: "+rawSentence.toString());
-        SentenceData09 parsedSentence = aParser.parse(rawSentence,aParser.params,labelOnly,aParser.options);
-        //logger.debug("syn: "+parsedSentence.toString());
+        if(rawSentence.length() > 0 && rawSentence.toString().length() > 20)
+            {
+            logger.debug("raw: ["+rawSentence.toString()+"]");
+            SentenceData09 parsedSentence = aParser.parse(rawSentence,aParser.params,labelOnly,aParser.options);
+            logger.debug("syn: "+parsedSentence.toString());
 
-        out.println(parsedSentence.toString());
+            out.println(parsedSentence.toString());
+            }
         }
 
 /**
