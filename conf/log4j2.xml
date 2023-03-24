@@ -35,7 +35,7 @@
     -->
         <!-- Catch all logger. Set to debug, if external jars fails -->
         <Root level="warn">
-            <AppenderRef ref="File"/>
+            <AppenderRef ref="fileLogger"/>
         </Root>
     </Loggers>
 </Configuration>
