@@ -105,7 +105,7 @@ public class BohnetsParser extends HttpServlet
         return "";
         }
 
-    public void parseSentence(ArrayList<String> lines,PrintWriter out,String ModelFileName)
+    public void parseSentence(ArrayList<String> lines,PrintWriter out,Parser aParser)
         {
         int l = lines.size();
         if(l == 0)
@@ -215,18 +215,6 @@ public class BohnetsParser extends HttpServlet
                 }
             }
         
-        Parser aParser = new Parser();
-        //logger.debug("ModelFileName: "+ModelFileName);
-        aParser.options = new Options(new String[]{"-model", ModelFileName});
-        aParser.pipe = new Pipe(aParser.options);
-        aParser.params = new ParametersFloat(0);  // total should be zero and the parameters are later read 
-        try {
-            aParser.readModel(aParser.options, aParser.pipe, aParser.params);
-            }
-        catch(Exception e) 
-            {          
-            e.printStackTrace();
-            }
         SentenceData09 rawSentence = new SentenceData09(forms,lemmas,gpos,ppos,labels,heads);
 
         boolean labelOnly = false;
@@ -262,11 +250,23 @@ separated by an empty line.
             String str;
             ArrayList<String> lines = new ArrayList<String>();
             lines.add(new String("0\t<root>\t_\t_\t_\t<root-POS>"));
+            Parser aParser = new Parser();
+            //logger.debug("ModelFileName: "+ModelFileName);
+            aParser.options = new Options(new String[]{"-model", ModelFileName});
+            aParser.pipe = new Pipe(aParser.options);
+            aParser.params = new ParametersFloat(0);  // total should be zero and the parameters are later read 
+            try {
+                aParser.readModel(aParser.options, aParser.pipe, aParser.params);
+                }
+            catch(Exception e) 
+                {          
+                e.printStackTrace();
+                }
             while ((str = dis.readLine()) != null) 
                 {
                 if (str.trim().length() == 0) 
                     {
-                    parseSentence(lines,out,ModelFileName);
+                    parseSentence(lines,out,aParser);
                     lines.clear();
                     lines.add(new String("0\t<root>\t_\t_\t_\t<root-POS>"));
                     }
@@ -278,7 +278,7 @@ separated by an empty line.
                 }
             java.nio.file.Files.deleteIfExists(java.nio.file.Paths.get(arg));
             if(lines.size() > 1)
-                parseSentence(lines,out,ModelFileName);
+                parseSentence(lines,out,aParser);
             }
         catch(UnsupportedEncodingException ue)
             {
